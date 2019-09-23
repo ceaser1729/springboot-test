@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title></title>
+    <style type="text/css">
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #F5F5F5;
+            text-align: center;
+        }
+
+        .login {
+            width: 300px;
+            margin: 200px auto 0 auto;
+        }
+
+        .login input {
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+            box-sizing: border-box;
+            height: auto;
+            padding: 10px;
+            font-size: 16px;
+
+            display: block;
+            width: 100%;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+
+        .login button {
+            font-size: 16px;
+            margin-top: 20px;
+            background: #297DF6;
+            border-radius: 5px;
+            height: 40px;
+            line-height: 40px;
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+            width: 100%;
+        }
+    </style>
+    <script src="js/jquery-1.9.1.js"></script>
+</head>
+<body>
+<div class="login">
+    <h3>请登录</h3>
+    <form action="http://127.0.0.1:8080/user/login" method="post">
+        用户名：<input placeholder="用户名..." type="text" id="username" name="username"/><br/>
+        密码：<input placeholder="密码..." type="password" id="password" name="password"/><br/>
+        <!--<input type="hidden" name="service" th:value="${service}" /><br/>-->
+        <button type="submit">登录</button>
+    </form>
+</div>
+</body>
+</html>

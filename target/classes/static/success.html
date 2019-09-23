@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #F5F5F5;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            font-size: .938em;
+            border-collapse: collapse;/*边框会合并为一个单一的边框*/
+        }
+
+        caption {
+            margin: 1em 0 .7em 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 120%;
+            letter-spacing: .5px;
+            color: #fff;
+        }
+
+        th {
+            text-align: center;
+            padding: .5em .5em;
+            font-weight: bold;
+            background: #66677c;color: #fff;
+        }
+
+        td {
+            padding: .5em .5em;
+            border-bottom: solid 1px #ccc;
+        }
+
+        div {
+            text-align: left;
+            width: 100%;
+        }
+
+        div#pagePlugin{
+            text-align: right;
+        }
+
+        div#addPlugin{
+            display: none;
+            width: 100%;
+            border: 1px solid #66677c;
+        }
+
+        div#editPlugin{
+            display: none;
+            width: 100%;
+            border: 1px solid #66677c;
+        }
+
+        table,table tr th, table tr td { border:1px solid #0094ff; }
+    </style>
+    <script src="js/jquery-1.9.1.js"></script>
+    <script>
+        var b = "http://127.0.0.1:8080";//baseUrl
+        var i = false;//登录标识
+        var s = 5;//每页条数
+        var p = 1;//当前页数
+        var t = 1;//总页数
+
+        $(document).ready( function () {
+            initLogin();
+            if(i){
+                buildTable(p,s);
+            }else{
+                window.location.href="login.html";
+            }
+        } );
+
+        function initLogin(){
+            var url = b + "/user/initLogin";
+            $.ajax({
+                type: "post",
+                url: url,
+                data: {},
+                async: false,
+                contentType : 'application/json',
+                dataType: "json",
+                success: function (response, index) {
+                    if(response){
+                        i = true;
+                        $("#loginname").html(response.username);
+                    }
+                }
+            });
+        }
+
+        function buildTable(page, size){
+            var u = $("#usernameQ").val();
+            var data = {};
+            if(u){
+                data = {"username" : u};
+            }
+            var url = b + "/user/getTable/"+page+"/"+size;
+            $.ajax({
+                type: "post",
+                url: url,
+                data: JSON.stringify(data),
+                async: false,
+                contentType : 'application/json',
+                dataType: "json",
+                success: function (response, index) {
+                    if(response && response.list){
+                        $("#userTBody").html("");
+                        var list = response.list;
+                        for(var i=0;i<list.length;i++){
+                            $("#userTBody").append("<tr>" +
+                                "<td>" + isNull(list[i].username) + "</td>" +
+                                "<td>" + isNull(list[i].password) + "</td>" +
+                                "<td>" + isNull(list[i].age) + "</td>" +
+                                "<td>" + isNull(list[i].address) + "</td>" +
+                                "<td><a href='#' onclick='showEditPulgin("+list[i].id+")'>编辑</a> | <a onclick='deletePulgin("+list[i].id+")' href='#'>删除</a></td>" +
+                                "</tr>");
+                        }
+                        t = response.pages;
+                        p = response.pageNum;
+                        $("#page").html(p);
+                        $("#size").html(t);
+                    }
+                }
+            });
+        }
+
+        function isNull(obj){
+            return obj==null?"":obj;
+        }
+
+        function nextPage(){
+            if(p++ >= t){
+                p = t;
+            }
+            buildTable(p,s);
+        }
+
+        function prePage(){
+            if(p-- <= 1){
+                p = 1;
+            }
+            buildTable(p,s);
+        }
+
+        function query(){
+            p = 1;
+            buildTable(p,s);
+        }
+
+        function clean(){
+            $("#usernameQ").val("");
+        }
+
+        function showAddPulgin(){
+            $("#addPlugin").show();
+        }
+
+        function hideAddPulgin(){
+            $("#addPlugin").hide();
+            cleanAddPulgin();
+        }
+
+        function cleanAddPulgin(){
+            $("#usernameA").val("");
+            $("#passwordA").val("");
+            $("#ageA").val("");
+            $("#addressA").val("");
+        }
+
+        function submitAdd(){
+            var username = $("#usernameA").val();
+            var password = $("#passwordA").val();
+            var age = $("#ageA").val();
+            var address = $("#addressA").val();
+            var data = {};
+            if(username){
+                data.username = username;
+            }
+            if(password){
+                data.password = password;
+            }
+            if(age){
+                data.age = age;
+            }
+            if(address){
+                data.address = address;
+            }
+            var url = b + "/user/add";
+            $.ajax({
+                type: "post",
+                url: url,
+                data: JSON.stringify(data),
+                async: false,
+                contentType : 'application/json',
+                dataType: "json",
+                success: function (response, index) {
+                    if(response && response > 0){
+                        alert("添加成功");
+                        window.location.reload();
+                    }else{
+                        alert("添加失败");
+                    }
+                }
+            });
+
+        }
+
+        function showEditPulgin(id){
+            if(id){
+                $("#editPlugin").show();
+                var url = b + "/user/get/"+id;
+                $.ajax({
+                    type: "get",
+                    url: url,
+                    data: {},
+                    async: false,
+                    contentType : 'application/json',
+                    dataType: "json",
+                    success: function (response, index) {
+                        if(response){
+                            $("#idE").val(response.id);
+                            $("#usernameE").val(response.username);
+                            $("#passwordE").val(response.password);
+                            $("#ageE").val(response.age);
+                            $("#addressE").val(response.address);
+                        }
+                    }
+                });
+            }
+        }
+
+        function hideEditPulgin(){
+            $("#editPlugin").hide();
+        }
+
+        function cleanEditPulgin(){
+            showEditPulgin($("#idE").val());
+        }
+
+        function submitEdit(){
+            var id = $("#idE").val();
+            var username = $("#usernameE").val();
+            var password = $("#passwordE").val();
+            var age = $("#ageE").val();
+            var address = $("#addressE").val();
+            var data = {};
+            if(id){
+                data.id = id;
+            }
+            if(username){
+                data.username = username;
+            }
+            if(password){
+                data.password = password;
+            }
+            if(age){
+                data.age = age;
+            }
+            if(address){
+                data.address = address;
+            }
+            var url = b + "/user/edit";
+            $.ajax({
+                type: "post",
+                url: url,
+                data: JSON.stringify(data),
+                async: false,
+                contentType : 'application/json',
+                dataType: "json",
+                success: function (response, index) {
+                    if(response && response > 0){
+                        alert("编辑成功");
+                        window.location.reload();
+                    }else{
+                        alert("编辑失败");
+                    }
+                }
+            });
+        }
+
+        function deletePulgin(id){
+            if(confirm("确定要删除吗？"))
+            {
+                if(id){
+                    var url = b + "/user/delete/"+id;
+                    $.ajax({
+                        type: "post",
+                        url: url,
+                        data: {},
+                        async: false,
+                        contentType : 'application/json',
+                        dataType: "json",
+                        success: function (response, index) {
+                            if(response && response > 0){
+                                alert("删除成功");
+                                window.location.reload();
+                            }else{
+                                alert("删除失败");
+                            }
+                        }
+                    });
+                }
+            }
+
+        }
+
+        function loginout(){
+            var url = b + "/user/loginout";
+            $.ajax({
+                type: "post",
+                url: url,
+                data: {},
+                async: false,
+                contentType : 'application/json',
+                dataType: "json",
+                success: function (response, index) {
+                    if(response && response == 1){
+                        window.location.href="login.html";
+                    }
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<h4 style="color: red">登录成功！您好，<i><span id="loginname"></span></i> <a href="#" onclick="loginout()">注销</a></h4>
+    <div>用户名：<input name="username" id="usernameQ" type="text"/> <button onclick="query()">查询</button><button onclick="clean()">清空</button> <button style="float:right" onclick="showAddPulgin()">新增</button></div>
+    <br/>
+    <table id="userTable">
+        <thead>
+        <tr>
+            <th width="20%">用户名</th>
+            <th width="20%">密码</th>
+            <th width="10%">年龄</th>
+            <th width="30%">住址</th>
+            <th width="20%">操作</th>
+        </tr>
+        </thead>
+        <tbody id="userTBody">
+        </tbody>
+    </table>
+    <br/>
+    <div id="pagePlugin"><a href="#" onclick="prePage()">上一页</a> | <span id="page">1</span>/<span id="size">10</span> | <a href="#" onclick="nextPage()">下一页</a></div>
+    <div id="addPlugin">
+            <b>【新增用户】</b><br/>
+            用户名：<input name="username" id="usernameA" type="text"/><br/>
+            密  码：<input name="password" id="passwordA" type="text"/><br/>
+            年  龄：<input name="age" id="ageA" type="text"/><br/>
+            住  址：<input name="address" id="addressA" type="text"/><br/>
+            <button type="button" onclick="submitAdd()">提交</button> <button type="button" onclick="cleanAddPulgin()">重置</button> <button type="button" onclick="hideAddPulgin()">关闭</button>
+        </form>
+    </div>
+    <br/>
+    <div id="editPlugin">
+        <b>【编辑用户】</b><br/>
+        <input name="id" id="idE" type="hidden"/>
+        用户名：<input name="username" id="usernameE" type="text"/><br/>
+        密  码：<input name="password" id="passwordE" type="text"/><br/>
+        年  龄：<input name="age" id="ageE" type="text"/><br/>
+        住  址：<input name="address" id="addressE" type="text"/><br/>
+        <button type="button" onclick="submitEdit()">提交</button> <button type="button" onclick="cleanEditPulgin()">重置</button> <button type="button" onclick="hideEditPulgin()">关闭</button>
+        </form>
+    </div>
+</body>
+</html>
